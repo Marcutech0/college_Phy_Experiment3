@@ -5,7 +5,6 @@ public class playerController : MonoBehaviour
 {
     private Rigidbody2D rb;
     private bool _isMoving = false;
-    [SerializeField] private TextMeshProUGUI _speedometer;
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _maxSpeed = 10f;
     [SerializeField] private float _rotationSpeed = 200f;
@@ -19,9 +18,6 @@ public class playerController : MonoBehaviour
     {
         playerRotate();
         _isMoving = Input.GetKey(KeyCode.W);
-
-        float _currentSpeed = rb.linearVelocity.magnitude;
-        _speedometer.text = "Player Speed: " + _currentSpeed.ToString("F2") + " m/s";
     }
 
     void FixedUpdate()
@@ -45,7 +41,19 @@ public class playerController : MonoBehaviour
 
     void playerRotate()
     {
-        float Hmovement = -Input.GetAxis("Horizontal");
-        transform.Rotate(0, 0, Hmovement * _rotationSpeed * Time.deltaTime);
+        float Hmovement = Input.GetAxis("Horizontal");  
+        transform.Rotate(0, 0, -Hmovement * _rotationSpeed * Time.deltaTime);  
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Rigidbody2D objRb = collision.rigidbody;
+        if (objRb != null)
+        {
+            Vector2 pushDirection = (collision.transform.position - transform.position).normalized;
+            objRb.AddForce(pushDirection * _moveSpeed, ForceMode2D.Impulse);
+
+            rb.AddForce(-pushDirection * _moveSpeed * (objRb.mass / rb.mass), ForceMode2D.Impulse);
+        }
     }
 }
